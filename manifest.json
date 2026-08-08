@@ -1,0 +1,19 @@
+{
+  "id": "pokemove-colorfix",
+  "name": "Pokemove Colorfix",
+  "version": "0.1.0",
+  "api": 2,
+  "entry": "main.lua",
+  "profile": "content",
+  "category": "GRAPHICS",
+  "game_version": ">=0.0.0-0 <2.0.0",
+  "github": "keberos/pokemove-colorfix",
+  "priority": 100,
+  "permissions": [
+    "engine_internals"
+  ],
+  "dependencies": [],
+  "optional_dependencies": [],
+  "conflicts": [],
+  "description": "Battle move animations render two-tone white-and-black because their sprites use the f0 OBJ palette slot, which selects only the lightest and darkest shades -- the hue is discarded before any palette is consulted, so no COLORS mod can reach it. This gives every move animation a three-stop ramp from its elemental type: Ember burns orange, Thundershock is yellow, Surf is blue. Fifteen type ramps plus a small per-move exception list, all editable at the top of main.lua."
+}
