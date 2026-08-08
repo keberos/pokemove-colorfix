@@ -54,19 +54,19 @@ return function(mod)
   local TYPES = {
     NORMAL   = { { 248, 248, 248 }, { 184, 184, 184 }, {  56,  56,  56 } },
     FIGHTING = { { 255, 208, 160 }, { 216,  96,  48 }, {  96,  24,  16 } },
-    FLYING   = { { 236, 248, 255 }, { 160, 200, 240 }, {  56,  88, 144 } },
+    FLYING   = { { 176, 222, 255 }, { 160, 200, 240 }, {  56,  88, 144 } },
     POISON   = { { 240, 200, 255 }, { 184,  88, 208 }, {  72,  24,  96 } },
     GROUND   = { { 240, 216, 160 }, { 200, 152,  72 }, {  88,  56,  16 } },
-    ROCK     = { { 224, 208, 184 }, { 160, 136, 104 }, {  64,  48,  32 } },
+    ROCK     = { { 232, 206, 160 }, { 160, 136, 104 }, {  64,  48,  32 } },
     BUG      = { { 224, 248, 176 }, { 152, 200,  72 }, {  56,  88,  24 } },
-    GHOST    = { { 224, 208, 255 }, { 136, 104, 200 }, {  40,  24,  72 } },
+    GHOST    = { { 214, 186, 255 }, { 136, 104, 200 }, {  40,  24,  72 } },
     FIRE     = { { 255, 240, 176 }, { 248, 144,  40 }, { 152,  32,  16 } },
-    WATER    = { { 216, 244, 255 }, {  72, 160, 232 }, {  24,  64, 136 } },
+    WATER    = { { 168, 224, 255 }, {  72, 160, 232 }, {  24,  64, 136 } },
     GRASS    = { { 216, 248, 176 }, {  88, 192,  88 }, {  24,  88,  40 } },
     ELECTRIC = { { 255, 255, 200 }, { 248, 216,  48 }, { 136,  88,   8 } },
-    PSYCHIC  = { { 255, 216, 240 }, { 240, 104, 184 }, { 112,  24,  88 } },
-    ICE      = { { 232, 252, 255 }, { 136, 216, 240 }, {  40, 104, 144 } },
-    DRAGON   = { { 224, 224, 255 }, { 128, 128, 216 }, {  40,  40,  96 } },
+    PSYCHIC  = { { 255, 184, 232 }, { 240, 104, 184 }, { 112,  24,  88 } },
+    ICE      = { { 176, 236, 255 }, { 136, 216, 240 }, {  40, 104, 144 } },
+    DRAGON   = { { 196, 196, 255 }, { 128, 128, 216 }, {  40,  40,  96 } },
   }
 
   -- Moves whose animation reads wrong in its type's colors. Kept small on
@@ -76,8 +76,20 @@ return function(mod)
     EXPLOSION   = TYPES.FIRE,
     SELFDESTRUCT = TYPES.FIRE,
     -- NORMAL, but the animation is a beam and deserves to look like one
-    HYPER_BEAM  = { { 255, 224, 255 }, { 216, 104, 232 }, {  88,  16, 112 } },
+    HYPER_BEAM  = { { 255, 196, 255 }, { 216, 104, 232 }, {  88,  16, 112 } },
   }
+
+  -- ------- why the highlight stops carry real chroma
+  --
+  -- Sprite colour 1 is the stop most animations lean on hardest, and a beam
+  -- tile can be almost nothing else. A highlight only a few points off white
+  -- therefore renders the whole move white -- which is exactly what the
+  -- vanilla f0 map does, so the mod appears to have done nothing. Psybeam was
+  -- the case that caught it: (255,216,240) is 39 points of chroma, invisible
+  -- at 8x8 on a handheld. Every stop here now clears ~60 points.
+  --
+  -- NORMAL is the deliberate exception: a Tackle impact should read as a
+  -- plain white flash, not a tinted one.
 
   local function paletteFor(moveId, data)
     if not moveId then return nil end
