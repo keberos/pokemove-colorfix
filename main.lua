@@ -48,13 +48,6 @@ return function(mod)
   local BattleState = require("src.battle.BattleState")
   local AnimPlayer  = require("src.battle.AnimPlayer")
 
-  -- A live toggle rather than a hardcoded choice: obp1 sprites already
-  -- resolve real colour, so claiming them is a judgement call that is much
-  -- easier to make by flipping it in a battle than by reasoning about it.
-  mod.options:define({
-    { key = "pal1", label = "PAL1 TILES", type = "toggle", default = true },
-  })
-
   -- highlight / body / edge, per elemental type. Ordered light to dark:
   -- these become sprite colors 1, 2 and 3, and a ramp that does not fall in
   -- brightness will read inside out.
@@ -153,22 +146,19 @@ return function(mod)
     return originalStart(self, moveId, attackerIsPlayer, opts)
   end
 
-  -- ------- 3. hand animation sprites the type ramp
+  -- ------- 3. hand f0 sprites the type ramp
   --
-  -- f0 is the common case and always claimed. obp1 is behind an option,
-  -- because those sprites are not broken the way f0 sprites are: obp1 maps
-  -- to { 3, 2, 1 }, the full shade range, so they already resolve real
-  -- colour -- just the colour of whatever palette zone they happen to fly
-  -- over, which mid-battle is usually the enemy species' palette.
+  -- Only f0 and its flicker twin f0x. obp1 and e4 are left to the engine on
+  -- purpose: both map to the full shade range, so they already resolve real
+  -- colour and were never the broken case.
   --
-  -- Psybeam is why the option exists. Its beam stayed white after the
-  -- highlight fix, which rules out f0 entirely: under obp1 a colour-3
-  -- dominant tile maps to shade 1, a LIGHT shade, so the beam reads white
-  -- no matter how saturated the f0 ramp gets.
-  --
-  -- The ramp is REVERSED for obp1. f0 maps colour 1 to the lightest shade;
-  -- obp1 maps it to the darkest. Handing obp1 the same order would invert
-  -- the sprite's shading and render it inside out.
+  -- 1.1.1 briefly claimed obp1 as well, on the theory that Psybeam staying
+  -- white meant its beam had to be a PAL1 tile. That reasoning was wrong --
+  -- white only proved this mod had not claimed the sprite, not which slot it
+  -- used. The real cause was the PSYCHIC_TYPE lookup miss above. Tested
+  -- afterwards: with the obp1 handling disabled, Psybeam stays pink. So it
+  -- was changing sprites that were never broken, for no benefit, and it is
+  -- gone. Recorded here so it does not get re-tried on the same hunch.
   if not BattleState._moveColorsOriginalColors then
     BattleState._moveColorsOriginalColors = BattleState.animSpriteColors
   end
@@ -176,17 +166,9 @@ return function(mod)
 
   local function norm(c) return { c[1] / 255, c[2] / 255, c[3] / 255 } end
 
-  local function wantsPal1()
-    local ok, value = pcall(function() return mod.options:get("pal1") end)
-    if not ok or value == nil then return true end
-    return value ~= false
-  end
-
   function BattleState:animSpriteColors(s, px, py)
     local obp = s and s.obp
-    local isF0 = (obp == "f0" or obp == "f0x")
-    local isPal1 = (obp == "obp1")
-    if not (isF0 or (isPal1 and wantsPal1())) then
+    if obp ~= "f0" and obp ~= "f0x" then
       return originalColors(self, s, px, py)
     end
     local ap = self.animPlayer
@@ -196,9 +178,6 @@ return function(mod)
     if obp == "f0x" then
       -- the hardware flicker complements colors 1 and 2
       hi, mid = mid, hi
-    elseif isPal1 then
-      -- obp1 shades run dark -> light, the opposite way to f0
-      hi, lo = lo, hi
     end
     return { norm(hi), norm(mid), norm(lo) }
   end
