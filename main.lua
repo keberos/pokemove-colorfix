@@ -98,6 +98,18 @@ return function(mod)
   -- NORMAL is the deliberate exception: a Tackle impact should read as a
   -- plain white flash, not a tinted one.
 
+  -- The type CONSTANT is not always the type NAME. pokered disambiguates
+  -- Psychic's constant to PSYCHIC_TYPE because there is also a move called
+  -- PSYCHIC, so `moves.PSYBEAM.type` is "PSYCHIC_TYPE" and a table keyed
+  -- "PSYCHIC" silently misses -- which left every Psychic move rendering
+  -- vanilla white. Stripping the suffix is done generically rather than
+  -- aliasing the one known case, so a future constant with the same shape
+  -- resolves on its own. PSYCHIC_TYPE is the only such name today.
+  local function rampForType(t)
+    if type(t) ~= "string" or t == "" then return nil end
+    return TYPES[t] or TYPES[(t:gsub("_TYPE$", ""))]
+  end
+
   local function paletteFor(moveId, data)
     if not moveId then return nil end
     local direct = MOVES[moveId]
@@ -107,7 +119,7 @@ return function(mod)
     -- no move record: a miscAnimation (ball toss, POOF, status chains).
     -- Left to the engine deliberately -- see the header.
     if not def then return nil end
-    return TYPES[def.type or ""]
+    return rampForType(def.type)
   end
 
   -- ------- 1. the WIDE layout never colorizes the anim layer at all
